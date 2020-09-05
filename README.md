@@ -1,6 +1,5 @@
 # Table of Contents
 <!-- ts -->
-* [Table of Contents](#table-of-contents)
 * [Org Chart](#org-chart)
     * [Dependencies](#dependencies)
     * [Installation](#installation)
