@@ -1,0 +1,11 @@
+Employee ID,Name,Grade,Supervisor ID,Role,Location,Image
+1,Vicky Shah,A,,,Dublin,
+2,Honey Sykes,B,1,,Dublin,
+3,Donnell Regan,B,1,,Dublin,
+4,Clementine Greaves,C,2,,New York,
+5,Kiaan Adamson,C,2,,New York,,
+6,Esther Terrell,C,3,,New York,,
+7,Sky Hawkins,C,3,,New York,
+8,Rojin Rose,D,6,,Dublin,
+9,Kamil Beard,D,6,,Dublin,
+10,Craig Kearney,D,3,,Dublin,

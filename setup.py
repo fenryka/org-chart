@@ -1,0 +1,15 @@
+from setuptools import setup
+
+setup(
+    name='org-chart',
+    include_package_data=True,
+    version='0.1',
+    py_modules=['org_chart'],
+    install_requires=[
+        'click', 'PyQt5', 'scipy', 'ete3', 'six'
+    ],
+    entry_points='''
+        [console_scripts]
+        orgchart=org_chart:cli
+    ''',
+)
