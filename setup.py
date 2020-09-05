@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='org-chart',
     include_package_data=True,
-    version='0.1',
+    version='1.0',
     py_modules=['org_chart'],
     install_requires=[
         'click', 'PyQt5', 'scipy', 'ete3', 'six'
