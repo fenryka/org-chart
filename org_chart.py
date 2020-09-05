@@ -76,7 +76,7 @@ def tree_style():
 
 @click.command()
 @click.option("--data", type=click.File("r"), help="File to parse")
-@click.option("--root", default="", help="Person to use as the top of the chart")
+@click.option("--root", default=None, help="Person to use as the top of the chart")
 @click.option("--file", default="org-chart.png", help="output file")
 def cli(data, root, file):
     employees = []
@@ -94,7 +94,7 @@ def cli(data, root, file):
         except KeyError:
             pass
 
-        if employee.supervisor == "" and root == "":
+        if employee.supervisor == "" and not root:
             root = employee.name
 
     try:
