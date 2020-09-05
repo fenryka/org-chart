@@ -1,8 +1,12 @@
 # Table of Contents
 <!-- ts -->
+* [Table of Contents](#table-of-contents)
 * [Org Chart](#org-chart)
     * [Dependencies](#dependencies)
-* [Installation](#installation)
+    * [Installation](#installation)
+        * [Usage](#usage)
+            * [Specifying the filename](#specifying-the-filename)
+    * [Example](#example)
 <!-- te -->
 # Org Chart
 
