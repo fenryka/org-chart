@@ -52,7 +52,7 @@ def ete_graph(employee_, employees_, manager_=None):
     employee.add_face(face, column=0, position=position)
 
     for report in employees_[employee_].reports:
-        ete_graph (report, employees_, employee)
+        ete_graph(report, employees_, employee)
 
     if not manager_:
         return employee
@@ -76,7 +76,7 @@ def tree_style():
 
 @click.command()
 @click.option("--data", type=click.File("r"), help="File to parse")
-@click.option("--root", help="Person to use as the top of the chart", required=True)
+@click.option("--root", default="", help="Person to use as the top of the chart")
 @click.option("--file", default="org-chart.png", help="output file")
 def cli(data, root, file):
     employees = []
@@ -94,13 +94,16 @@ def cli(data, root, file):
         except KeyError:
             pass
 
+        if employee.supervisor == "" and root == "":
+            root = employee.name
+
     try:
-        id = nameToId[root]
+        empoyee_id = nameToId[root]
     except KeyError:
         sys.stderr.write(root + " Does not exist in csv file\n")
         sys.exit(1)
 
-    tree = ete_graph(id, employeesById)
+    tree = ete_graph(empoyee_id, employeesById)
     tree.render(file, tree_style=tree_style())
 
 # -------------------------------------------------------------------------------
