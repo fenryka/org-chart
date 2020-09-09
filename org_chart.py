@@ -152,9 +152,9 @@ def cli(data, root, file, colour_by):
         return str_.rstrip("\n")
 
     for line in data.readlines()[1:]:
-        vals = list (map(normalise, line.split(',')))
-        employees.append(Employee(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[7],
-                         vals[8], colour_by))
+        tokens = list(map(normalise, line.split(',')))
+        employees.append(Employee(tokens[0], tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[7],
+                         tokens[8], colour_by))
 
     employeesById = {k.id: k for k in employees}
     nameToId = {k.name: k.id for k in employees}
@@ -175,10 +175,7 @@ def cli(data, root, file, colour_by):
         sys.exit(1)
 
     tree = ete_graph(employee_id, employeesById)
-    print(locationColours)
-    print (teamColours)
     tree.render(file, tree_style=tree_style())
-
 
 # -------------------------------------------------------------------------------
 
