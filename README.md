@@ -21,6 +21,7 @@ The project has the following dependencies
     * scipy
     * six
 * click
+* webcolors
 
 ## Installation
 
@@ -35,7 +36,12 @@ pip install .
 Assuming the virtual environment is activated
 
 ```shell script
-orgchart --data <csv file> --root <manager>
+orgchart <csv file>
+
+# By default the script will treat the first employee it finds with no
+# supervisor as the most senior employee and the center of the web.
+# To use a different eployee, specify them by name with the --root flag
+orgchart <csv file> --root <manager>
 ```
 
 Will produce a file called ``org_chart.py``
@@ -43,13 +49,15 @@ Will produce a file called ``org_chart.py``
 #### Specifying the filename
 
 ```shell script
-orgchart --data <csv file> --root <manager> --file <filename>
+orgchart <csv file> --root <manager> --file <filename>
 ```
 
 ## Example
 
 ```shell script
-orgchart --data examples/example.csv --root "Vicky Shah"
+orgchart examples/example.csv
+
+orgchart examples/example.csv --root "Vicky Shah"
 ```
 
 ![oc1](examples/oc1.png)

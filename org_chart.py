@@ -1,61 +1,109 @@
 import sys
 import click
+import random
+import webcolors
 
+from webcolors import CSS3_NAMES_TO_HEX, CSS3
 from ete3 import Tree, TreeStyle, TextFace, add_face_to_node, NodeStyle, TextFace
 
 # -------------------------------------------------------------------------------
 
-locationColours = {
-    "London": "darkred",
-    "Dublin": "green",
-    "New York": "blue",
-    "Singapore": "yellow"
-}
-
+locationColours = {}
+teamColours = {}
+allColours = [*CSS3_NAMES_TO_HEX]
 
 # -------------------------------------------------------------------------------
 
+
+def pick_colours():
+    bgColour = random.choice(allColours)
+    rgb = webcolors.name_to_rgb(bgColour, spec=CSS3)
+
+    luminance = 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
+    fgColour = "white" if (luminance < 140) else "black"
+
+    return [bgColour, fgColour]
+
+# -------------------------------------------------------------------------------
+
+
 class Employee:
-    def __init__(self, id_, name_, grade_, supervisor_, role_, location_):
+    def __init__(self, id_, name_, location_, grade_, supervisor_, role_, team_, gender_, colour_):
         self.id = id_
         self.name = name_
         self.grade = grade_
         self.supervisor = supervisor_
         self.role = role_
         self.location = location_
+        self.team = team_
+        self.gender = gender_
         self.reports = []
+        self.colours = colour_(self)
 
     def __str__(self):
         return self.name
 
+# -------------------------------------------------------------------------------
+
+
+def colour_by_team(employee_):
+    return teamColours.setdefault(employee_.team, pick_colours())
+
+
+def colour_by_role(employee_):
+    return teamColours.setdefault(employee_.role, pick_colours())
+
+
+def colour_by_gender(employee_):
+    return teamColours.setdefault(employee_.gender, pick_colours())
+
+
+def colour_by_location(employee_):
+    return teamColours.setdefault(employee_.location, pick_colours())
+
+
+def colour_by_grade(employee_):
+    return teamColours.setdefault(employee_.grade, pick_colours())
+
+
+def colour_by_none(_):
+    return ["White", "Black"]
 
 # -------------------------------------------------------------------------------
 
+
 def ete_graph(employee_, employees_, manager_=None):
-    name = employees_[employee_].name
+    employee = employees_[employee_]
 
-    employee = manager_.add_child(name=name, dist=1) if manager_ else Tree(name=name)
+    employeeNode = manager_.add_child(name=employee.name, dist=1) if manager_ else Tree(name=employee.name)
 
-    nstyle = NodeStyle()
-    nstyle["shape"] = "sphere"
-    nstyle["size"] = 25
-    nstyle["fgcolor"] = locationColours[employees_[employee_].location]
+    nodeStyle = NodeStyle()
+    nodeStyle["shape"] = "sphere"
+    nodeStyle["size"] = 40 if employee.role else 20
+    nodeStyle["fgcolor"] = locationColours.setdefault(employees_[employee_].location, random.choice(allColours))
 
-    employee.set_style(nstyle)
+    employeeNode.set_style(nodeStyle)
 
-    face = TextFace(name, tight_text=False, fsize=30)
-    face.margin_right = 5
-    face.margin_left = 5
+    def text_face(name_, colour_, fsize_=30):
+        face = TextFace(name_, tight_text=False, fsize=fsize_)
+        face.margin_right = 5
+        face.margin_left = 5
+        face.background.color = colour_[0]
+        face.fgcolor = colour_[1]
+        return face
 
     position = "branch-right"
 
-    employee.add_face(face, column=0, position=position)
+    employeeNode.add_face(text_face(employee.name, employee.colours), column=0, position=position)
+
+    if employee.role:
+        employeeNode.add_face(text_face(employee.role, employee.colours, 20), column=0, position=position)
 
     for report in employees_[employee_].reports:
-        ete_graph(report, employees_, employee)
+        ete_graph(report, employees_, employeeNode)
 
     if not manager_:
-        return employee
+        return employeeNode
 
 
 # -------------------------------------------------------------------------------
@@ -74,16 +122,39 @@ def tree_style():
 
 # -------------------------------------------------------------------------------
 
+def handle_colour_by(_, __, value):
+    if value == "role":
+        return colour_by_role
+    elif value == "location":
+        return colour_by_location
+    elif value == "grade":
+        return colour_by_grade
+    elif value == "gender":
+        return colour_by_gender
+    elif value == "team":
+        return colour_by_team
+    elif value == "none":
+        return colour_by_none
+
+
+# -------------------------------------------------------------------------------
+
 @click.command()
-@click.option("--data", type=click.File("r"), help="File to parse")
-@click.option("--root", default=None, help="Person to use as the top of the chart")
-@click.option("--file", default="org-chart.png", help="output file")
-def cli(data, root, file):
+@click.argument("data", type=click.File("r"))
+@click.option("-r", "--root", default=None, help="Person to use as the top of the chart")
+@click.option("-f", "--file", default="org-chart.png", help="output file")
+@click.option("-c", "--colour-by", type=click.Choice(["role", "location", "grade", "gender", "team", "none"]),
+              default="team", callback=handle_colour_by)
+def cli(data, root, file, colour_by):
     employees = []
 
+    def normalise(str_):
+        return str_.rstrip("\n")
+
     for line in data.readlines()[1:]:
-        vals = line.split(',')
-        employees.append(Employee(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5]))
+        vals = list (map(normalise, line.split(',')))
+        employees.append(Employee(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[7],
+                         vals[8], colour_by))
 
     employeesById = {k.id: k for k in employees}
     nameToId = {k.name: k.id for k in employees}
@@ -98,12 +169,19 @@ def cli(data, root, file):
             root = employee.name
 
     try:
-        empoyee_id = nameToId[root]
+        employee_id = nameToId[root]
     except KeyError:
         sys.stderr.write(root + " Does not exist in csv file\n")
         sys.exit(1)
 
-    tree = ete_graph(empoyee_id, employeesById)
+    tree = ete_graph(employee_id, employeesById)
+    print(locationColours)
+    print (teamColours)
     tree.render(file, tree_style=tree_style())
 
+
 # -------------------------------------------------------------------------------
+
+
+if __name__ == "__main__":
+    cli()

@@ -1,11 +1,11 @@
-Employee ID,Name,Grade,Supervisor ID,Role,Location,Image
-1,Vicky Shah,A,,,Dublin,
-2,Honey Sykes,B,1,,Dublin,
-3,Donnell Regan,B,1,,Dublin,
-4,Clementine Greaves,C,2,,New York,
-5,Kiaan Adamson,C,2,,New York,,
-6,Esther Terrell,C,3,,New York,,
-7,Sky Hawkins,C,3,,New York,
-8,Rojin Rose,D,6,,Dublin,
-9,Kamil Beard,D,6,,Dublin,
-10,Craig Kearney,D,3,,Dublin,
+Employee ID,Name,Location,Grade,Supervisor ID,Role,Image,Top-level team,Gender
+1,Vicky Shah,Dublin,A,,,,CEO,F
+2,Honey Sykes,Dublin,B,1,,,Sales,F
+3,Donnell Regan,Dublin,B,1,,,Tech,M
+4,Clementine Greaves,New York,C,2,,,Sales,F
+5,Kiaan Adamson,New York,C,2,,,Pre Sales,M
+6,Esther Terrell,New York,C,3,,,Tech,F
+7,Sky Hawkins,New York,C,3,,,Ops,F
+8,Rojin Rose,Dublin,D,6,,,Pre Sales,M
+9,Kamil Beard,Dublin,D,6,,,Sales Ops,M
+10,Craig Kearney,Dublin,D,3,,,Tech,M
