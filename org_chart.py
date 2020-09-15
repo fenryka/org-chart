@@ -3,21 +3,21 @@ import click
 import random
 import webcolors
 
-from webcolors import CSS3_NAMES_TO_HEX, CSS3
 from ete3 import Tree, TreeStyle, TextFace, add_face_to_node, NodeStyle, TextFace
+from typing import List, Dict, AnyStr, Callable
 
 # -------------------------------------------------------------------------------
 
 locationColours = {}
 teamColours = {}
-allColours = [*CSS3_NAMES_TO_HEX]
+allColours = [*webcolors.CSS3_NAMES_TO_HEX]
 
 # -------------------------------------------------------------------------------
 
 
 def pick_colours():
     bgColour = random.choice(allColours)
-    rgb = webcolors.name_to_rgb(bgColour, spec=CSS3)
+    rgb = webcolors.name_to_rgb(bgColour, spec=webcolors.CSS3)
 
     luminance = 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
     fgColour = "white" if (luminance < 140) else "black"
@@ -28,41 +28,64 @@ def pick_colours():
 
 
 class Employee:
-    def __init__(self, id_, name_, location_, grade_, supervisor_, role_, team_, start_, gender_, colour_):
-        self.id = id_
-        self.name = name_
-        self.grade = grade_
-        self.supervisor = supervisor_
-        self.role = role_
-        self.location = location_
-        self.team = team_
-        self.gender = gender_
+    setters = {
+        "Employee ID": lambda x, y: setattr(x, "employee_id", y),
+        "Name": lambda x, y: setattr(x, "name", y),
+        "Location": lambda x, y: setattr(x, "location", y),
+        "Grade": lambda x, y: setattr(x, "grade", y),
+        "Supervisor ID": lambda x, y: setattr(x, "supervisor", y),
+        "Role": lambda x, y: setattr(x, "role", y),
+        "Image": lambda x, y: setattr(x, "image", y),
+        "Top-level team": lambda x, y: setattr(x, "team", y),
+        "Gender": lambda x, y: setattr(x, "gender", y),
+        "Start Date": lambda x, y: setattr(x, "start_date", y)
+    }
+
+    @staticmethod
+    def initial_attributes():
+        return {k: -1 for k in Employee.setters.keys()}
+
+    def __init__(self, map_: Dict, tokens_: List, colour_: Callable):
+        self.employee_id = ""
+        self.name = ""
+        self.grade = ""
+        self.supervisor = ""
+        self.image = ""
+        self.role = ""
+        self.location = ""
+        self.team = ""
+        self.gender = ""
         self.reports = []
+
+        for k, v in map_.items():
+            Employee.setters[k](self, tokens_[v])
+
         self.colours = colour_(self)
 
     def __str__(self):
         return self.name
 
+
 # -------------------------------------------------------------------------------
 
 
-def colour_by_team(employee_):
+def colour_by_team(employee_: Employee):
     return teamColours.setdefault(employee_.team, pick_colours())
 
 
-def colour_by_role(employee_):
+def colour_by_role(employee_: Employee):
     return teamColours.setdefault(employee_.role, pick_colours())
 
 
-def colour_by_gender(employee_):
+def colour_by_gender(employee_: Employee):
     return teamColours.setdefault(employee_.gender, pick_colours())
 
 
-def colour_by_location(employee_):
+def colour_by_location(employee_: Employee):
     return teamColours.setdefault(employee_.location, pick_colours())
 
 
-def colour_by_grade(employee_):
+def colour_by_grade(employee_: Employee):
     return teamColours.setdefault(employee_.grade, pick_colours())
 
 
@@ -72,7 +95,7 @@ def colour_by_none(_):
 # -------------------------------------------------------------------------------
 
 
-def ete_graph(employee_, employees_, manager_=None):
+def ete_graph(employee_: AnyStr, employees_: Dict, manager_=None):
     employee = employees_[employee_]
 
     employeeNode = manager_.add_child(name=employee.name, dist=1) if manager_ else Tree(name=employee.name)
@@ -122,7 +145,7 @@ def tree_style():
 
 # -------------------------------------------------------------------------------
 
-def handle_colour_by(_, __, value):
+def handle_colour_by(_, __, value: AnyStr):
     if value == "role":
         return colour_by_role
     elif value == "location":
@@ -151,17 +174,22 @@ def cli(data, root, file, colour_by):
     def normalise(str_):
         return str_.rstrip("\n")
 
-    for line in data.readlines()[1:]:
-        tokens = list(map(normalise, line.split(',')))
-        employees.append(Employee(tokens[0], tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[6],
-                         tokens[7], tokens[8], colour_by))
+    attributes = Employee.initial_attributes()
 
-    employeesById = {k.id: k for k in employees}
-    nameToId = {k.name: k.id for k in employees}
+    headers = list(map(normalise, data.readline().split(',')))
+    for i, token in enumerate(headers):
+        attributes[token] = i
+
+    for line in data.readlines()[:]:
+        tokens = list(map(normalise, line.split(',')))
+        employees.append(Employee(attributes, tokens, colour_by))
+
+    employeesById = {k.employee_id: k for k in employees}
+    nameToId = {k.name: k.employee_id for k in employees}
 
     for employee in employees:
         try:
-            employeesById[employee.supervisor].reports.append(employee.id)
+            employeesById[employee.supervisor].reports.append(employee.employee_id)
         except KeyError:
             pass
 
