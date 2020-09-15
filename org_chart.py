@@ -187,6 +187,7 @@ def cli(data, root, file, colour_by):
     employeesById = {k.employee_id: k for k in employees}
     nameToId = {k.name: k.employee_id for k in employees}
 
+    # TODO Don't take two passes to do this
     for employee in employees:
         try:
             employeesById[employee.supervisor].reports.append(employee.employee_id)
