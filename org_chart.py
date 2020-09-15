@@ -28,7 +28,7 @@ def pick_colours():
 
 
 class Employee:
-    def __init__(self, id_, name_, location_, grade_, supervisor_, role_, team_, gender_, colour_):
+    def __init__(self, id_, name_, location_, grade_, supervisor_, role_, team_, start_, gender_, colour_):
         self.id = id_
         self.name = name_
         self.grade = grade_
@@ -153,8 +153,8 @@ def cli(data, root, file, colour_by):
 
     for line in data.readlines()[1:]:
         tokens = list(map(normalise, line.split(',')))
-        employees.append(Employee(tokens[0], tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[7],
-                         tokens[8], colour_by))
+        employees.append(Employee(tokens[0], tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[6],
+                         tokens[7], tokens[8], colour_by))
 
     employeesById = {k.id: k for k in employees}
     nameToId = {k.name: k.id for k in employees}
