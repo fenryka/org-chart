@@ -38,7 +38,8 @@ class Employee:
         "Image": lambda x, y: setattr(x, "image", y),
         "Top-level team": lambda x, y: setattr(x, "team", y),
         "Gender": lambda x, y: setattr(x, "gender", y),
-        "Start Date": lambda x, y: setattr(x, "start_date", y)
+        "Start Date": lambda x, y: setattr(x, "start_date", y),
+        "Job Title": lambda x, y: setattr(x, "job_title", y)
     }
 
     @staticmethod
@@ -55,6 +56,7 @@ class Employee:
         self.location = ""
         self.team = ""
         self.gender = ""
+        self.job_title = ""
         self.reports = []
 
         for k, v in map_.items():
@@ -87,6 +89,10 @@ def colour_by_location(employee_: Employee):
 
 def colour_by_grade(employee_: Employee):
     return teamColours.setdefault(employee_.grade, pick_colours())
+
+
+def colour_by_jon_title(employee_: Employee):
+    return teamColours.setdefault(employee_.job_title, pick_colours())
 
 
 def colour_by_none(_):
@@ -156,6 +162,8 @@ def handle_colour_by(_, __, value: AnyStr):
         return colour_by_gender
     elif value == "team":
         return colour_by_team
+    elif value == "title":
+        return colour_by_jon_title
     elif value == "none":
         return colour_by_none
 
@@ -166,7 +174,7 @@ def handle_colour_by(_, __, value: AnyStr):
 @click.argument("data", type=click.File("r"))
 @click.option("-r", "--root", default=None, help="Person to use as the top of the chart")
 @click.option("-f", "--file", default="org-chart.png", help="output file")
-@click.option("-c", "--colour-by", type=click.Choice(["role", "location", "grade", "gender", "team", "none"]),
+@click.option("-c", "--colour-by", type=click.Choice(["role", "location", "grade", "gender", "team", "none", "title"]),
               default="team", callback=handle_colour_by)
 def cli(data, root, file, colour_by):
     employees = []
@@ -184,13 +192,13 @@ def cli(data, root, file, colour_by):
         tokens = list(map(normalise, line.split(',')))
         employees.append(Employee(attributes, tokens, colour_by))
 
-    employeesById = {k.employee_id: k for k in employees}
+    employees_by_id = {k.employee_id: k for k in employees}
     nameToId = {k.name: k.employee_id for k in employees}
 
     # TODO Don't take two passes to do this
     for employee in employees:
         try:
-            employeesById[employee.supervisor].reports.append(employee.employee_id)
+            employees_by_id[employee.supervisor].reports.append(employee.employee_id)
         except KeyError:
             pass
 
@@ -203,7 +211,7 @@ def cli(data, root, file, colour_by):
         sys.stderr.write(root + " Does not exist in csv file\n")
         sys.exit(1)
 
-    tree = ete_graph(employee_id, employeesById)
+    tree = ete_graph(employee_id, employees_by_id)
     tree.render(file, tree_style=tree_style())
 
 # -------------------------------------------------------------------------------
