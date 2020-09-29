@@ -1,0 +1,11 @@
+Employee ID,Name,Location,Supervisor ID,Top-level team,Gender
+1,Vicky Shah,Dublin,,CEO,F
+2,Honey Sykes,Dublin,1,Sales,F
+3,Donnell Regan,Dublin,1,Tech,M
+4,Clementine Greaves,New York,C,2,Sales,F
+5,Kiaan Adamson,New York,2,Pre Sales,M
+6,Esther Terrell,New York,3,Tech,F
+7,Sky Hawkins,New York,3,Ops,F
+8,Rojin Rose,Dublin,6,Pre Sales,M
+9,Kamil Beard,Dublin,6,Sales Ops,M
+10,Craig Kearney,Dublin,3,Tech,M

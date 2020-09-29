@@ -3,7 +3,7 @@ import click
 import random
 import webcolors
 
-from ete3 import Tree, TreeStyle, TextFace, add_face_to_node, NodeStyle, TextFace
+from ete3 import Tree, TreeStyle, NodeStyle, TextFace
 from typing import List, Dict, AnyStr, Callable
 
 # -------------------------------------------------------------------------------
@@ -59,13 +59,25 @@ class Employee:
         self.job_title = ""
         self.reports = []
 
-        for k, v in map_.items():
+        for k, v in filter(lambda x: x[1] != -1, map_.items()):
             Employee.setters[k](self, tokens_[v])
 
         self.colours = colour_(self)
 
     def __str__(self):
-        return self.name
+        return "id: {}\n  name: {}\n  grade: {}\n  supervisor: {}\n  immge: {}\n  role: {}\n  location: {}\n  team: {}" \
+               + "\n  gender: {}\n  job title: {}\n    [{}]".format(
+                    self.employee_id,
+                    self.name,
+                    self.grade,
+                    self.supervisor,
+                    self.image,
+                    self.role,
+                    self.location,
+                    self.team,
+                    self.gender,
+                    self.job_title,
+                    ", ".join(self.reports))
 
 
 # -------------------------------------------------------------------------------
@@ -104,14 +116,14 @@ def colour_by_none(_):
 def ete_graph(employee_: AnyStr, employees_: Dict, manager_=None):
     employee = employees_[employee_]
 
-    employeeNode = manager_.add_child(name=employee.name, dist=1) if manager_ else Tree(name=employee.name)
+    employee_node = manager_.add_child(name=employee.name, dist=1) if manager_ else Tree(name=employee.name)
 
-    nodeStyle = NodeStyle()
-    nodeStyle["shape"] = "sphere"
-    nodeStyle["size"] = 40 if employee.role else 20
-    nodeStyle["fgcolor"] = locationColours.setdefault(employees_[employee_].location, random.choice(allColours))
+    node_style = NodeStyle()
+    node_style["shape"] = "sphere"
+    node_style["size"] = 40 if employee.role else 20
+    node_style["fgcolor"] = locationColours.setdefault(employees_[employee_].location, random.choice(allColours))
 
-    employeeNode.set_style(nodeStyle)
+    employee_node.set_style(node_style)
 
     def text_face(name_, colour_, fsize_=30):
         face = TextFace(name_, tight_text=False, fsize=fsize_)
@@ -123,16 +135,16 @@ def ete_graph(employee_: AnyStr, employees_: Dict, manager_=None):
 
     position = "branch-right"
 
-    employeeNode.add_face(text_face(employee.name, employee.colours), column=0, position=position)
+    employee_node.add_face(text_face(employee.name, employee.colours), column=0, position=position)
 
     if employee.role:
-        employeeNode.add_face(text_face(employee.role, employee.colours, 20), column=0, position=position)
+        employee_node.add_face(text_face(employee.role, employee.colours, 20), column=0, position=position)
 
     for report in employees_[employee_].reports:
-        ete_graph(report, employees_, employeeNode)
+        ete_graph(report, employees_, employee_node)
 
     if not manager_:
-        return employeeNode
+        return employee_node
 
 
 # -------------------------------------------------------------------------------
@@ -175,7 +187,7 @@ def handle_colour_by(_, __, value: AnyStr):
 @click.option("-r", "--root", default=None, help="Person to use as the top of the chart")
 @click.option("-f", "--file", default="org-chart.png", help="output file")
 @click.option("-c", "--colour-by", type=click.Choice(["role", "location", "grade", "gender", "team", "none", "title"]),
-              default="team", callback=handle_colour_by)
+              default="none", callback=handle_colour_by)
 def cli(data, root, file, colour_by):
     employees = []
 
@@ -193,7 +205,7 @@ def cli(data, root, file, colour_by):
         employees.append(Employee(attributes, tokens, colour_by))
 
     employees_by_id = {k.employee_id: k for k in employees}
-    nameToId = {k.name: k.employee_id for k in employees}
+    name_to_id = {k.name: k.employee_id for k in employees}
 
     # TODO Don't take two passes to do this
     for employee in employees:
@@ -206,7 +218,7 @@ def cli(data, root, file, colour_by):
             root = employee.name
 
     try:
-        employee_id = nameToId[root]
+        employee_id = name_to_id[root]
     except KeyError:
         sys.stderr.write(root + " Does not exist in csv file\n")
         sys.exit(1)
