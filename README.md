@@ -29,6 +29,25 @@ The project has the following dependencies
 virtualenv venv
 . venv/bin/activate
 pip install . 
+``
+
+## Py QT being "special"
+
+PyQt5 is required by ete3 for the TreeView types, it does not appear to work
+with PyQt6 but I wouldn't argue I've really looked into working out why. Thus,
+if the depednecy installation fails try install qt5
+
+
+```commandline
+brew install qt5
+```
+
+The second "fun" thing to note is currently PyQt is also broken, there seems
+to be some logic in the installer about licence acceptence being automatic
+that unless specified to pip just hangs. Thus, if install pyqt5 hangs try
+
+```
+pip install pyqt5 --config-settings --confirm-license= --verbose
 ```
 
 ### Usage
