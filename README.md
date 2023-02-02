@@ -9,8 +9,15 @@
 <!-- te -->
 # Org Chart
 
-A very simple python application to generate an organsiation chart from a CSV 
-file. Specifically, one formatted as a circular hierarchy. 
+A very simple python application to generate an organsiation chart from a CSV
+file. Specifically, one formatted as a circular hierarchy.
+
+> *NOTE* There seems to be an issue at the moment with Python 3.10 and PyQt5
+> involving conversions between float and int. It looks like this used to be
+> done automatically and PyQt relied upon that when calculating the canvas
+> size for the image. Now it is no longer automatic we crash with a TypeError
+>
+> PDF export still works for now and as fixes land will update the readme
 
 ## Dependencies
 
