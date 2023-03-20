@@ -54,7 +54,7 @@ class Employee:
     def initial_attributes():
         return {k: -1 for k in Employee.setters.keys()}
 
-    def __init__(self, map_: Dict, tokens_: List, colour_: Callable):
+    def __init__(self, colour_: Callable, map_: Dict, tokens_):
         self.employee_id = ""
         self.name = ""
         self.grade = ""
@@ -69,17 +69,17 @@ class Employee:
         self.dob = ""
         self.reports = []
 
+        self.colours = colour_(self)
+
         for k, v in filter(lambda x: x[1] != -1, map_.items()):
             try:
                 Employee.setters[k](self, tokens_[v])
             except KeyError:
                 pass
 
-        self.colours = colour_(self)
-
     def __str__(self):
         return "id: {}\n  name: {}\n  grade: {}\n  supervisor: {}\n  image: {}\n  role: {}\n  location: {}\n  team: {}"\
-               + "\n  gender: {}\n  job title: {}\n    [{}]".format(
+               "\n  tl team: {}\n  gender: {}\n  job title: {}\n    [{}]".format(
                     self.employee_id,
                     self.name,
                     self.grade,
@@ -145,6 +145,7 @@ def ete_graph(employee_: AnyStr, employees_: Dict, manager_=None):
         face.margin_left = 5
         face.background.color = colour_[0]
         face.fgcolor = colour_[1]
+        # face.rotation = -45
         return face
 
     position = "branch-right"
@@ -167,6 +168,19 @@ def tree_style():
     ts = TreeStyle()
     ts.show_leaf_name = False  # we're manually adding text faces
     ts.mode = "c"
+    ts.show_scale = False
+    ts.scale = None
+    ts.optimal_scale_level = "full"
+    ts.force_topology = True
+
+    return ts
+
+
+def tree_style_rect():
+    ts = TreeStyle()
+    ts.show_leaf_name = False  # we're manually adding text faces
+    ts.mode = "r"
+    ts.rotation = 90
     ts.show_scale = False
     ts.scale = None
     ts.optimal_scale_level = "full"
@@ -203,13 +217,14 @@ def handle_colour_by(_, __, value: AnyStr):
 @click.option("-c", "--colour-by", type=click.Choice(["role", "location", "grade", "gender", "team", "none", "title"]),
               default="none", callback=handle_colour_by)
 def cli(data, root, file, colour_by):
-    employees = []
+    employees = {}
 
     def normalise(str_):
         return str_.rstrip("\n")
 
     attributes = Employee.initial_attributes()
 
+    # Read the first line of the CSV file to grab the list of tokens each column represents
     headers = list(map(normalise, data.readline().split(',')))
 
     for i, token in enumerate(headers):
@@ -217,15 +232,16 @@ def cli(data, root, file, colour_by):
 
     for line in data.readlines()[:]:
         tokens = list(map(normalise, line.split(',')))
-        employees.append(Employee(attributes, tokens, colour_by))
+        employee = Employee(colour_by, attributes, tokens)
+        employees[employee.employee_id] = employee
 
-    employees_by_id = {k.employee_id: k for k in employees}
-    name_to_id = {k.name: k.employee_id for k in employees}
+    name_to_id = {k.name: k.employee_id for k in employees.values()}
 
     # TODO Don't take two passes to do this
-    for employee in employees:
+    for employee in employees.values():
         try:
-            employees_by_id[employee.supervisor].reports.append(employee.employee_id)
+            # print (employee.name + " -> " + employees[employee.supervisor].name)
+            employees[employee.supervisor].reports.append(employee.employee_id)
         except KeyError:
             pass
 
@@ -238,8 +254,9 @@ def cli(data, root, file, colour_by):
         sys.stderr.write(root + " Does not exist in csv file\n")
         sys.exit(1)
 
-    tree = ete_graph(employee_id, employees_by_id)
+    tree = ete_graph(employee_id, employees)
     tree.render(file, tree_style=tree_style())
+    #tree.render(file, tree_style=tree_style_rect())
 
 # -------------------------------------------------------------------------------
 
