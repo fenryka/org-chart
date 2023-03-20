@@ -8,7 +8,6 @@ from csv_loader import load_csv, Employee
 
 @click.command()
 @click.argument("data", type=click.File("r"))
-@click.option("-f", "--file", default="org-chart.png", help="output file")
 def cli(data):
     csv = load_csv(data)
     employees_by_id: Dict[AnyStr, Employee] = csv['employees_by_id']

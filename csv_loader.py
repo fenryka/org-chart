@@ -1,24 +1,31 @@
 import click
 
-from typing import Dict, List, Callable
+from typing import Dict, List, Callable, AnyStr
 
 
 class Employee:
     setters = {
         "Employee ID": lambda x, y: setattr(x, "employee_id", y),
+        "Employee Id": lambda x, y: setattr(x, "employee_id", y),
         "Name": lambda x, y: setattr(x, "name", y),
+        "Full Name": lambda x, y: setattr(x, "name", y),
         "Location": lambda x, y: setattr(x, "location", y),
+        "City": lambda x, y: setattr(x, "location", y),
+        "Office": lambda x, y: setattr(x, "location", y),
         "Grade": lambda x, y: setattr(x, "grade", y),
         "Supervisor ID": lambda x, y: setattr(x, "supervisor", y),
+        "Reports To": lambda x, y: setattr(x, "supervisor", y),
         "Role": lambda x, y: setattr(x, "role", y),
         "Image": lambda x, y: setattr(x, "image", y),
-        "Top-level team": lambda x, y: setattr(x, "team", y),
-        "Top-Level Team": lambda x, y: setattr(x, "team", y),
+        "Top-level team": lambda x, y: setattr(x, "tl_team", y),
+        "Division": lambda x, y: setattr(x, "tl_team", y),
+        "Team": lambda x, y: setattr(x, "team", y),
         "Gender": lambda x, y: setattr(x, "gender", y),
         "Start Date": lambda x, y: setattr(x, "start_date", y),
         "Job Title": lambda x, y: setattr(x, "job_title", y),
-        "Division": lambda x, y: setattr(x, "division", y),
+        "Date of Birth": lambda x, y: setattr(x, "dob", y),
         "Ethnicity": lambda x, y: setattr(x, "ethnicity", y),
+        "Salary": lambda x, y: setattr(x, "salary", y),
         "Perm": lambda x, y: setattr(x, "perm", True if y == "Y" else False)
     }
 
@@ -26,7 +33,7 @@ class Employee:
     def initial_attributes():
         return {k: -1 for k in Employee.setters.keys()}
 
-    def __init__(self, map_: Dict, tokens_: List, colour_: Callable = lambda _: "black" ):
+    def __init__(self, map_: Dict, tokens_: List, colour_: Callable = lambda _: "black"):
         self.employee_id = ""
         self.name = ""
         self.grade = ""
@@ -38,12 +45,9 @@ class Employee:
         self.team = ""
         self.gender = ""
         self.job_title = ""
-        self.division = ""
-        self.ethnicity = ""
-        self.perm = False
-        self.reports = []
         self.dob = ""
         self.reports = []
+        self.perm = False
 
         for k, v in filter(lambda x: x[1] != -1, map_.items()):
             try:
@@ -55,22 +59,23 @@ class Employee:
         self.colours = colour_(self)
 
     def __str__(self):
-        return "id: {}\n  name: {}\n  grade: {}\n  supervisor: {}\n  image: {}\n  role: {}\n  location: {}\n  team: {}"\
-               + "\n  gender: {}\n  job title: {}\n    [{}]".format(
-                    self.employee_id,
-                    self.name,
-                    self.grade,
-                    self.supervisor,
-                    self.image,
-                    self.role,
-                    self.location,
-                    self.team,
-                    self.gender,
-                    self.job_title,
-                    ", ".join(self.reports))
+        return "id: {}\n  name: {}\n  grade: {}\n  supervisor: {}\n  image: {}\n  role: {}\n  location: {}\n  team: {}" \
+            + "\n  gender: {}\n  job title: {}\n    [{}]".format(
+                self.employee_id,
+                self.name,
+                self.grade,
+                self.supervisor,
+                self.image,
+                self.role,
+                self.location,
+                self.tl_team,
+                self.team,
+                self.gender,
+                self.job_title,
+                ", ".join(self.reports))
 
 
-def load_csv(data, colour_by: Callable = None):
+def load_csv(data, colour_by: Callable = None) -> Dict[AnyStr, Dict]:
     def normalise(str_):
         return str_.rstrip("\n")
 
