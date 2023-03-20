@@ -27,7 +27,6 @@ def pick_colours():
 
 # -------------------------------------------------------------------------------
 
-
 def colour_by_team(employee_: Employee):
     return teamColours.setdefault(employee_.tl_team, pick_colours())
 
