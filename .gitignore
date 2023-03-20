@@ -2,3 +2,8 @@
 
 *.png
 
+__pycache__/
+build/
+org_chart.egg-info/
+.DS_Store
+.run/

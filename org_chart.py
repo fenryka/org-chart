@@ -3,8 +3,9 @@ import click
 import random
 import webcolors
 
+from csv_loader import Employee, load_csv
 from ete3 import Tree, TreeStyle, NodeStyle, TextFace
-from typing import List, Dict, AnyStr, Callable
+from typing import Dict, AnyStr
 
 # -------------------------------------------------------------------------------
 
@@ -23,76 +24,6 @@ def pick_colours():
     fgColour = "white" if (luminance < 140) else "black"
 
     return [bgColour, fgColour]
-
-# -------------------------------------------------------------------------------
-
-
-class Employee:
-
-    setters = {
-        "Employee ID": lambda x, y: setattr(x, "employee_id", y),
-        "Employee Id": lambda x, y: setattr(x, "employee_id", y),
-        "Name": lambda x, y: setattr(x, "name", y),
-        "Full Name": lambda x, y: setattr(x, "name", y),
-        "Location": lambda x, y: setattr(x, "location", y),
-        "Office": lambda x, y: setattr(x, "location", y),
-        "Grade": lambda x, y: setattr(x, "grade", y),
-        "Supervisor ID": lambda x, y: setattr(x, "supervisor", y),
-        "Reports To": lambda x, y: setattr(x, "supervisor", y),
-        "Role": lambda x, y: setattr(x, "role", y),
-        "Image": lambda x, y: setattr(x, "image", y),
-        "Top-level team": lambda x, y: setattr(x, "tl_team", y),
-        "Division": lambda x, y: setattr(x, "tl_team", y),
-        "Team": lambda x, y: setattr(x, "team", y),
-        "Gender": lambda x, y: setattr(x, "gender", y),
-        "Start Date": lambda x, y: setattr(x, "start_date", y),
-        "Job Title": lambda x, y: setattr(x, "job_title", y),
-        "Date of Birth": lambda x, y: setattr(x, "dob", y)
-    }
-
-    @staticmethod
-    def initial_attributes():
-        return {k: -1 for k in Employee.setters.keys()}
-
-    def __init__(self, map_: Dict, tokens_: List, colour_: Callable):
-        self.employee_id = ""
-        self.name = ""
-        self.grade = ""
-        self.supervisor = ""
-        self.image = ""
-        self.role = ""
-        self.location = ""
-        self.tl_team = ""
-        self.team = ""
-        self.gender = ""
-        self.job_title = ""
-        self.dob = ""
-        self.reports = []
-
-        for k, v in filter(lambda x: x[1] != -1, map_.items()):
-            try:
-                Employee.setters[k](self, tokens_[v])
-            except KeyError:
-                pass
-
-        self.colours = colour_(self)
-
-    def __str__(self):
-        return "id: {}\n  name: {}\n  grade: {}\n  supervisor: {}\n  image: {}\n  role: {}\n  location: {}\n  team: {}"\
-               + "\n  gender: {}\n  job title: {}\n    [{}]".format(
-                    self.employee_id,
-                    self.name,
-                    self.grade,
-                    self.supervisor,
-                    self.image,
-                    self.role,
-                    self.location,
-                    self.tl_team,
-                    self.team,
-                    self.gender,
-                    self.job_title,
-                    ", ".join(self.reports))
-
 
 # -------------------------------------------------------------------------------
 
@@ -145,6 +76,7 @@ def ete_graph(employee_: AnyStr, employees_: Dict, manager_=None):
         face.margin_left = 5
         face.background.color = colour_[0]
         face.fgcolor = colour_[1]
+        # face.rotation = -45
         return face
 
     position = "branch-right"
@@ -167,6 +99,19 @@ def tree_style():
     ts = TreeStyle()
     ts.show_leaf_name = False  # we're manually adding text faces
     ts.mode = "c"
+    ts.show_scale = False
+    ts.scale = None
+    ts.optimal_scale_level = "full"
+    ts.force_topology = True
+
+    return ts
+
+
+def tree_style_rect():
+    ts = TreeStyle()
+    ts.show_leaf_name = False  # we're manually adding text faces
+    ts.mode = "r"
+    ts.rotation = 90
     ts.show_scale = False
     ts.scale = None
     ts.optimal_scale_level = "full"
@@ -203,34 +148,9 @@ def handle_colour_by(_, __, value: AnyStr):
 @click.option("-c", "--colour-by", type=click.Choice(["role", "location", "grade", "gender", "team", "none", "title"]),
               default="none", callback=handle_colour_by)
 def cli(data, root, file, colour_by):
-    employees = []
-
-    def normalise(str_):
-        return str_.rstrip("\n")
-
-    attributes = Employee.initial_attributes()
-
-    headers = list(map(normalise, data.readline().split(',')))
-
-    for i, token in enumerate(headers):
-        attributes[token] = i
-
-    for line in data.readlines()[:]:
-        tokens = list(map(normalise, line.split(',')))
-        employees.append(Employee(attributes, tokens, colour_by))
-
-    employees_by_id = {k.employee_id: k for k in employees}
-    name_to_id = {k.name: k.employee_id for k in employees}
-
-    # TODO Don't take two passes to do this
-    for employee in employees:
-        try:
-            employees_by_id[employee.supervisor].reports.append(employee.employee_id)
-        except KeyError:
-            pass
-
-        if employee.supervisor == "" and not root:
-            root = employee.name
+    csv = load_csv(data, colour_by)
+    employees_by_id = csv['employees_by_id']
+    name_to_id = csv['employees_by_name']
 
     try:
         employee_id = name_to_id[root]
@@ -240,6 +160,7 @@ def cli(data, root, file, colour_by):
 
     tree = ete_graph(employee_id, employees_by_id)
     tree.render(file, tree_style=tree_style())
+    #tree.render(file, tree_style=tree_style_rect())
 
 # -------------------------------------------------------------------------------
 
