@@ -159,7 +159,6 @@ def cli(data, root, file, colour_by):
 
     tree = ete_graph(employee_id, employees_by_id)
     tree.render(file, tree_style=tree_style())
-    #tree.render(file, tree_style=tree_style_rect())
 
 # -------------------------------------------------------------------------------
 

@@ -89,9 +89,12 @@ def load_csv(data, colour_by: Callable = None) -> Dict[AnyStr, Dict]:
     for line in data.readlines()[:]:
         tokens = list(map(normalise, line.split(',')))
         if colour_by:
-            employees.append(Employee(attributes, tokens, colour_by))
+            employee = Employee(attributes, tokens, colour_by)
         else:
-            employees.append(Employee(attributes, tokens))
+            employee = Employee(attributes, tokens)
+
+        if employee.employee_id.lower().lstrip().rstrip() != "pending" and employee.employee_id != "":
+            employees.append(employee)
 
     employees_by_id = {k.employee_id: k for k in employees}
     employees_by_name = {k.name: k.employee_id for k in employees}
@@ -99,6 +102,7 @@ def load_csv(data, colour_by: Callable = None) -> Dict[AnyStr, Dict]:
     for employee in employees:
         try:
             employees_by_id[employee.supervisor].reports.append(employee.employee_id)
+            #print("Append {} to {}".format(employee.name, employee.supervisor))
         except KeyError:
             pass
 
