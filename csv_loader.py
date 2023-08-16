@@ -1,3 +1,5 @@
+import csv
+import sys
 import click
 
 from typing import Dict, List, Callable, AnyStr
@@ -81,13 +83,15 @@ def load_csv(data, colour_by: Callable = None) -> Dict[AnyStr, Dict]:
 
     attributes = Employee.initial_attributes()
 
-    headers = list(map(normalise, data.readline().split(',')))
+    reader = csv.reader(data)
+
+    headers = list(map(normalise, reader.__next__()))
     for i, token in enumerate(headers):
         attributes[token] = i
 
     employees = []
-    for line in data.readlines()[:]:
-        tokens = list(map(normalise, line.split(',')))
+    for line in reader:
+        tokens = list(map(normalise, line))
         if colour_by:
             employee = Employee(attributes, tokens, colour_by)
         else:
@@ -110,3 +114,8 @@ def load_csv(data, colour_by: Callable = None) -> Dict[AnyStr, Dict]:
         "employees_by_id": employees_by_id,
         "employees_by_name": employees_by_name
     }
+
+
+if __name__ == "__main__" :
+    with open(sys.argv[1]) as csvfile:
+        load_csv(csvfile)
